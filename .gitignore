@@ -46,4 +46,4 @@ evo2-backend/.modal*
 evo2-backend/brca1_analysis_plot.png
 
 __pycache__
-evo2-frontend
+.env
