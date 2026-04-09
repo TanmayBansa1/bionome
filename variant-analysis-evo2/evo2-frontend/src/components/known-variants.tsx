@@ -3,8 +3,10 @@
 import {
   analyzeVariantWithAPI,
   type ClinvarVariant,
+  type GeneBounds,
   type GeneFromSearch,
 } from "~/utils/genome-api";
+import type { AnalysisMode } from "./variant-analysis";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -15,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { Viaoda_Libre } from "next/font/google";
 import {
   BarChart2,
   ExternalLink,
@@ -35,6 +36,8 @@ export default function KnownVariants({
   clinvarError,
   genomeId,
   gene,
+  geneBounds,
+  analysisMode,
 }: {
   refreshVariants: () => void;
   showComparison: (variant: ClinvarVariant) => void;
@@ -44,6 +47,8 @@ export default function KnownVariants({
   clinvarError: string | null;
   genomeId: string;
   gene: GeneFromSearch;
+  geneBounds: GeneBounds | null;
+  analysisMode: AnalysisMode;
 }) {
   const analyzeVariant = async (variant: ClinvarVariant) => {
     let variantDetails = null;
@@ -88,6 +93,9 @@ export default function KnownVariants({
         alternative: variantDetails.alternative,
         genomeId: genomeId,
         chromosome: gene.chrom,
+        mode: analysisMode,
+        geneStart: geneBounds?.min ?? undefined,
+        geneEnd: geneBounds?.max ?? undefined,
       });
 
       const updatedVariant: ClinvarVariant = {

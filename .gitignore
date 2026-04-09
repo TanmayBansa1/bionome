@@ -47,3 +47,5 @@ evo2-backend/brca1_analysis_plot.png
 
 __pycache__
 .env
+
+venv/

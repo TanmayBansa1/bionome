@@ -1,6 +1,6 @@
 import type { ClinvarVariant } from "~/utils/genome-api";
 import { Button } from "./ui/button";
-import { Check, ExternalLink, Shield, X } from "lucide-react";
+import { Check, ExternalLink, Shield, AlertTriangle, X } from "lucide-react";
 import {
   getClassificationColorClasses,
   getNucleotideColorClass,
@@ -173,7 +173,7 @@ export function VariantComparisonModal({
                       {/* Confidence bar */}
                       <div className="mt-3">
                         <div className="mb-1 text-xs text-[#3c4f3d]/70">
-                          Confidence:
+                          Sequence-level confidence:
                         </div>
                         <div className="mt-1 h-2 w-full rounded-full bg-[#e9eeea]/80">
                           <div
@@ -187,36 +187,90 @@ export function VariantComparisonModal({
                           {Math.round(
                             comparisonVariant.evo2Result
                               .classification_confidence * 100,
-                          )}
-                          %
+                          )}%
                         </div>
                       </div>
+
+                      {/* Ensemble probability if available */}
+                      {comparisonVariant.evo2Result.xgboost_probability !== null &&
+                        comparisonVariant.evo2Result.xgboost_probability !== undefined && (
+                          <div className="mt-3">
+                            <div className="mb-1 text-xs text-[#3c4f3d]/70">
+                              Ensemble P(pathogenic):
+                              <span className="ml-1 text-[10px] text-[#3c4f3d]/40">
+                                Evo2 + conservation + position
+                              </span>
+                            </div>
+                            <div className="mt-1 h-2 w-full rounded-full bg-[#e9eeea]/80">
+                              <div
+                                className={`h-2 rounded-full ${comparisonVariant.evo2Result.xgboost_probability >= 0.5 ? "bg-red-500" : "bg-green-500"}`}
+                                style={{
+                                  width: `${comparisonVariant.evo2Result.xgboost_probability * 100}%`,
+                                }}
+                              ></div>
+                            </div>
+                            <div className="mt-1 text-right text-xs text-[#3c4f3d]/60">
+                              {Math.round(comparisonVariant.evo2Result.xgboost_probability * 100)}%
+                            </div>
+                          </div>
+                        )}
+
+                      {/* PhyloP score if available */}
+                      {comparisonVariant.evo2Result.phylop_score !== null &&
+                        comparisonVariant.evo2Result.phylop_score !== undefined && (
+                          <div className="mt-3">
+                            <div className="mb-1 text-xs text-[#3c4f3d]/70">
+                              Conservation (PhyloP100way):
+                            </div>
+                            <div className="text-sm font-mono">
+                              {comparisonVariant.evo2Result.phylop_score.toFixed(4)}
+                            </div>
+                            <div className="text-xs text-[#3c4f3d]/60">
+                              {comparisonVariant.evo2Result.phylop_score > 0
+                                ? "Conserved — functionally constrained"
+                                : "Rapidly evolving — less constraint"}
+                            </div>
+                          </div>
+                        )}
                     </div>
                   </div>
 
-                  {/* Assesment Agreement */}
-                  <div className="mt-4 rounded-md bg-[#e9eeea]/20 p-3 text-xs leading-relaxed">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`flex h-5 w-5 items-center justify-center rounded-full ${comparisonVariant.classification.toLowerCase() === comparisonVariant.evo2Result.prediction.toLowerCase() ? "bg-green-100" : "bg-yellow-100"}`}
-                      >
-                        {comparisonVariant.classification.toLowerCase() ===
-                        comparisonVariant.evo2Result.prediction.toLowerCase() ? (
-                          <Check className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <span className="flex h-3 w-3 items-center justify-center text-yellow-600">
-                            <p>!</p>
+                  {/* Assessment Agreement */}
+                  {(() => {
+                    const clinvarLower = comparisonVariant.classification.toLowerCase();
+                    const isVUS = clinvarLower.includes("uncertain") || clinvarLower === "unknown";
+                    const clinvarPathogenic = clinvarLower.includes("pathogenic");
+                    const evo2Pathogenic = comparisonVariant.evo2Result.prediction
+                      .toLowerCase()
+                      .includes("pathogenic");
+                    const agrees = clinvarPathogenic === evo2Pathogenic;
+
+                    let icon, bgColor, message;
+                    if (isVUS) {
+                      icon = <AlertTriangle className="h-3 w-3 text-blue-500" />;
+                      bgColor = "bg-blue-100";
+                      message = `ClinVar classification is uncertain — Evo2 predicts ${evo2Pathogenic ? "pathogenic" : "benign"}`;
+                    } else if (agrees) {
+                      icon = <Check className="h-3 w-3 text-green-600" />;
+                      bgColor = "bg-green-100";
+                      message = "Evo2 prediction agrees with ClinVar classification";
+                    } else {
+                      icon = <AlertTriangle className="h-3 w-3 text-yellow-600" />;
+                      bgColor = "bg-yellow-100";
+                      message = "Evo2 prediction differs from ClinVar classification";
+                    }
+
+                    return (
+                      <div className="mt-4 rounded-md bg-[#e9eeea]/20 p-3 text-xs leading-relaxed">
+                        <div className="flex items-center gap-2">
+                          <span className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${bgColor}`}>
+                            {icon}
                           </span>
-                        )}
-                      </span>
-                      <span className="font-medium text-[#3c4f3d]">
-                        {comparisonVariant.classification.toLowerCase() ===
-                        comparisonVariant.evo2Result.prediction.toLowerCase()
-                          ? "Evo2 prediction agrees with ClinVar classification"
-                          : "Evo2 prediction differs from ClinVar classification"}
-                      </span>
-                    </div>
-                  </div>
+                          <span className="font-medium text-[#3c4f3d]">{message}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

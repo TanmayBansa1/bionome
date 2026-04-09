@@ -1,6 +1,6 @@
 "use client";
 
-import { Clapperboard, Search, SearchCodeIcon } from "lucide-react";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import GeneViewer from "~/components/gene-viewer";
 import { Button } from "~/components/ui/button";
@@ -152,7 +152,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <h1 className="text-xl font-light tracking-wide text-[#3c4f3d]">
-                <span className="font-normal">EVO</span>
+                <span className="font-normal">BIONOME</span>
                 <span className="text-[#de8246]">2</span>
               </h1>
               <div className="absolute -bottom-1 left-0 h-[2px] w-12 bg-[#de8246]"></div>

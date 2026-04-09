@@ -39,6 +39,19 @@ export interface GeneBounds {
   max: number;
 }
 
+export interface AnalysisResult {
+  position: number;
+  reference: string;
+  alternative: string;
+  delta_score: number;
+  prediction: string;
+  classification_confidence: number;
+  operating_mode: string;
+  phylop_score: number | null;
+  xgboost_probability: number | null;
+  feature_importance: Record<string, number> | null;
+}
+
 export interface ClinvarVariant {
   clinvar_id: string;
   title: string;
@@ -47,22 +60,9 @@ export interface ClinvarVariant {
   gene_sort: string;
   chromosome: string;
   location: string;
-  evo2Result?: {
-    prediction: string;
-    delta_score: number;
-    classification_confidence: number;
-  };
+  evo2Result?: AnalysisResult;
   isAnalyzing?: boolean;
   evo2Error?: string;
-}
-
-export interface AnalysisResult {
-  position: number;
-  reference: string;
-  alternative: string;
-  delta_score: number;
-  prediction: string;
-  classification_confidence: number;
 }
 
 export async function getAvailableGenomes() {
@@ -355,11 +355,19 @@ export async function analyzeVariantWithAPI({
   alternative,
   genomeId,
   chromosome,
+  mode = "balanced",
+  runEnsemble = false,
+  geneStart,
+  geneEnd,
 }: {
   position: number;
   alternative: string;
   genomeId: string;
   chromosome: string;
+  mode?: "balanced" | "high_sensitivity" | "high_precision";
+  runEnsemble?: boolean;
+  geneStart?: number;
+  geneEnd?: number;
 }): Promise<AnalysisResult> {
   const url = env.NEXT_PUBLIC_ANALYZE_SINGLE_VARIANT_BASE_URL;
 
@@ -368,6 +376,10 @@ export async function analyzeVariantWithAPI({
     alternative: alternative,
     genome: genomeId,
     chromosome: chromosome,
+    mode,
+    run_ensemble: runEnsemble,
+    gene_start: geneStart ?? null,
+    gene_end: geneEnd ?? null,
   };
 
   console.log("=== API CALL: Sending request ===");

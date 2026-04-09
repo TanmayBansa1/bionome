@@ -17,6 +17,7 @@ import { GeneSequence } from "./gene-sequence";
 import KnownVariants from "./known-variants";
 import { VariantComparisonModal } from "./variant-comparison-modal";
 import VariantAnalysis, {
+  type AnalysisMode,
   type VariantAnalysisHandle,
 } from "./variant-analysis";
 
@@ -60,6 +61,7 @@ export default function GeneViewer({
     string | null
   >(null);
 
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("balanced");
   const variantAnalysisRef = useRef<VariantAnalysisHandle>(null);
 
   const updateClinvarVariant = (
@@ -242,6 +244,8 @@ export default function GeneViewer({
         referenceSequence={activeReferenceNucleotide}
         sequencePosition={activeSequencePosition}
         geneBounds={geneBounds}
+        analysisMode={analysisMode}
+        onAnalysisModeChange={setAnalysisMode}
       />
 
       <KnownVariants
@@ -253,6 +257,8 @@ export default function GeneViewer({
         clinvarError={clinvarError}
         genomeId={genomeId}
         gene={gene}
+        geneBounds={geneBounds}
+        analysisMode={analysisMode}
       />
 
       <GeneSequence
